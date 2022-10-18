@@ -12,7 +12,8 @@ func main() {
     addr := flag.String("a", ":8000", "Port to run HTTP server")
     flag.Parse()
 
-    router := server.New()
+    router, db := server.New()
+    defer db.Close()
 
     log.Printf("Server running in port localhost%s\n", *addr)
     log.Fatal(router.Run(*addr))

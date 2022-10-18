@@ -1,10 +1,11 @@
 package server
 
 import (
+    "database/sql"
 	"github.com/gin-gonic/gin"
 )
 
-func New() *gin.Engine {
+func New() (*gin.Engine, *sql.DB) {
     initDB()
     r := gin.Default()
     r.Use(gin.Logger())
@@ -15,5 +16,5 @@ func New() *gin.Engine {
     r.POST("/sale", registerSale)
     r.POST("/strange", registerStrange)
 
-    return r
+    return r, db
 }
