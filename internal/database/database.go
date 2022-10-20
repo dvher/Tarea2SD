@@ -5,8 +5,6 @@ import (
 	"log"
 )
 
-var db *sql.DB
-
 func New() *sql.DB{
     db, err := getConnection()
 
@@ -20,11 +18,4 @@ func New() *sql.DB{
     
     return db
 
-}
-
-func Close() error {
-
-    err := db.Close()
-
-    return err
 }

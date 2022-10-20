@@ -2,17 +2,9 @@ package server
 
 import (
     "net/http"
-    "database/sql"
 
-    "tarea2sd/internal/database"
     "github.com/gin-gonic/gin"
 )
-
-var db *sql.DB
-
-func initDB() {
-    db = database.New()
-}
 
 func registerMember(c *gin.Context) {
     nombre := c.PostForm("nombre")
