@@ -57,12 +57,6 @@ func New() (*gin.Engine) {
         ReplicationFactor: 1,
     }, false)
 
-    admin.CreateTopic("Extrano", &sarama.TopicDetail{
-        NumPartitions: 2,
-        ReplicationFactor: 1,
-    }, false)
-
-
     defer admin.Close()
 
 	r := gin.Default()

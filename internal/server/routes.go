@@ -7,7 +7,7 @@ import (
 
     "tarea2sd/pkg/miembro"
     "tarea2sd/pkg/venta"
-    "tarea2sd/pkg/strange"
+    "tarea2sd/pkg/coordinates"
 	"tarea2sd/internal/producer"
 	"github.com/gin-gonic/gin"
 )
@@ -61,6 +61,8 @@ func registerSale(c *gin.Context) {
         panic(err)
     }
 
+    coords := coordinates.Coordinates{sale.Coords}
+
     prod, err := producer.NewProducer(BrokerList)
 
     if err != nil {
@@ -75,7 +77,19 @@ func registerSale(c *gin.Context) {
         log.Panic(err)
     }
 
+    coordsBytes, err := coords.MarshalJSON()
+
+    if err != nil {
+        log.Panic(err)
+    }
+
     _, _, err = prod.SendMessage("Venta", rand.Int31n(2), saleBytes)
+
+    if err != nil {
+        log.Panic(err)
+    }
+
+    _, _, err = prod.SendMessage("Coordenadas", rand.Int31n(2), coordsBytes)
 
     if err != nil {
         log.Panic(err)
@@ -86,9 +100,9 @@ func registerSale(c *gin.Context) {
 
 func registerStrange(c *gin.Context) {
 
-    stranger := new(strange.Strange)
+    coords := new(coordinates.Coordinates)
 
-    err := c.BindJSON(stranger)
+    err := c.BindJSON(coords)
 
     if err != nil {
         panic(err)
@@ -102,13 +116,13 @@ func registerStrange(c *gin.Context) {
 
     defer prod.Close()
 
-    strangerBytes, err := stranger.MarshalJSON()
+    strangerBytes, err := coords.MarshalJSON()
 
     if err != nil {
         log.Panic(err)
     }
 
-    _, _, err = prod.SendMessage("Extrano", rand.Int31n(2), strangerBytes)
+    _, _, err = prod.SendMessage("Coordenadas", rand.Int31n(2), strangerBytes)
 
     if err != nil {
         log.Panic(err)
