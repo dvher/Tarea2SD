@@ -31,3 +31,14 @@ func NewProducer(brokerList []string) (prod *Producer, err error) {
 
     return
 }
+
+func (p *Producer) SendMessage(topic string, part int32, message []byte) (partition int32, offset int64, err error) {
+    msg := &sarama.ProducerMessage{
+        Topic:     topic,
+        Partition: part,
+        Value:     sarama.StringEncoder(message),
+    }
+
+    partition, offset, err = p.Producer.SendMessage(msg)
+    return
+}

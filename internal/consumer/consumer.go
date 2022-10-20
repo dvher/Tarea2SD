@@ -14,10 +14,26 @@ func (c *Consumer) Close() error {
 }
 
 func NewConsumer(brokersUrl []string) (con *Consumer, err error) {
+
+    config := sarama.NewConfig()
+    config.Consumer.Return.Errors = true
+
     con = &Consumer{
         BrokersUrl: brokersUrl,
     }
-    con.Consumer, err = sarama.NewConsumer(con.BrokersUrl, nil)
+    con.Consumer, err = sarama.NewConsumer(con.BrokersUrl, config)
 
     return
+}
+
+func (c *Consumer) Consume(topic string, partition int32, offset int64) (sarama.PartitionConsumer, error) {
+    return c.Consumer.ConsumePartition(topic, partition, offset)
+}
+
+func (c *Consumer) ConsumeSinceLast(topic string, partition int32) (sarama.PartitionConsumer, error) {
+    return c.Consumer.ConsumePartition(topic, partition, sarama.OffsetNewest)
+}
+
+func (c *Consumer) ConsumeFromBeginning(topic string, partition int32) (sarama.PartitionConsumer, error) {
+    return c.Consumer.ConsumePartition(topic, partition, sarama.OffsetOldest)
 }
