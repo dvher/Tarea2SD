@@ -61,7 +61,7 @@ func registerSale(c *gin.Context) {
         panic(err)
     }
 
-    coords := coordinates.Coordinates{sale.Coords}
+    coords := coordinates.Coordinates{Coords: sale.Coords}
 
     prod, err := producer.NewProducer(BrokerList)
 
