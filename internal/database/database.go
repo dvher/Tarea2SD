@@ -5,17 +5,17 @@ import (
 	"log"
 )
 
-func New() *sql.DB{
-    db, err := getConnection()
+func New() *sql.DB {
+	db, err := getConnection()
 
-    if err != nil {
-        log.Panic(err)
-    }
+	if err != nil {
+		log.Panic(err)
+	}
 
-    if err = db.Ping(); err != nil {
-        log.Panic(err)
-    }
-    
-    return db
+	if err = db.Ping(); err != nil {
+		log.Panic(err)
+	}
+
+	return db
 
 }
