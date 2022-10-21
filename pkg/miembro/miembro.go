@@ -13,6 +13,6 @@ type Miembro struct {
 	Premium  bool   `json:"premium"`
 }
 
-func (m *Miembro) MarshalJSON() ([]byte, error) {
+func (m *Miembro) JSON() ([]byte, error) {
 	return json.Marshal(m)
 }

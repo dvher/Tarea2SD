@@ -1,15 +1,16 @@
 package server
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
 
-	"tarea2sd/internal/producer"
-	"tarea2sd/pkg/coordinates"
-	"tarea2sd/pkg/miembro"
-	"tarea2sd/pkg/venta"
-
+	"github.com/dvher/Tarea2SD/internal/producer"
+	"github.com/dvher/Tarea2SD/pkg/brokers"
+	"github.com/dvher/Tarea2SD/pkg/coordinates"
+	"github.com/dvher/Tarea2SD/pkg/miembro"
+	"github.com/dvher/Tarea2SD/pkg/venta"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,21 +21,24 @@ func registerMember(c *gin.Context) {
 	err := c.BindJSON(member)
 
 	if err != nil {
-		panic(err)
+		log.Panic(err)
+		return
 	}
 
-	prod, err := producer.NewProducer(BrokerList)
+	prod, err := producer.NewProducer(brokers.Brokers)
 
 	if err != nil {
 		log.Panic(err)
+		return
 	}
 
 	defer prod.Close()
 
-	memberBytes, err := member.MarshalJSON()
+	memberBytes, err := member.JSON()
 
 	if err != nil {
 		log.Panic(err)
+		return
 	}
 
 	part := int32(0)
@@ -47,6 +51,7 @@ func registerMember(c *gin.Context) {
 
 	if err != nil {
 		log.Panic(err)
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
@@ -56,45 +61,55 @@ func registerSale(c *gin.Context) {
 
 	sale := new(venta.Venta)
 
-	err := c.BindJSON(sale)
+	err := c.BindJSON(&sale)
 
 	if err != nil {
-		panic(err)
+		log.Panic(err)
+		return
 	}
 
 	coords := coordinates.Coordinates{Coords: sale.Coords}
 
-	prod, err := producer.NewProducer(BrokerList)
+	prod, err := producer.NewProducer(brokers.Brokers)
 
 	if err != nil {
 		log.Panic(err)
+		return
 	}
 
 	defer prod.Close()
 
-	saleBytes, err := sale.MarshalJSON()
+	saleBytes, err := sale.JSON()
 
 	if err != nil {
 		log.Panic(err)
+		return
 	}
 
-	coordsBytes, err := coords.MarshalJSON()
+	coordsBytes, err := coords.JSON()
 
 	if err != nil {
 		log.Panic(err)
+		return
 	}
 
-	_, _, err = prod.SendMessage("Venta", rand.Int31n(2), saleBytes)
+	topic, part, err := prod.SendMessage("Ventas", rand.Int31n(2), saleBytes)
 
 	if err != nil {
 		log.Panic(err)
+		return
 	}
+
+	log.Printf("Queued in %d, %d\n", topic, part)
 
 	_, _, err = prod.SendMessage("Coordenadas", rand.Int31n(2), coordsBytes)
 
 	if err != nil {
 		log.Panic(err)
+		return
 	}
+
+	fmt.Println(string(saleBytes))
 
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
@@ -106,27 +121,31 @@ func registerStrange(c *gin.Context) {
 	err := c.BindJSON(coords)
 
 	if err != nil {
-		panic(err)
+		log.Panic(err)
+		return
 	}
 
-	prod, err := producer.NewProducer(BrokerList)
+	prod, err := producer.NewProducer(brokers.Brokers)
 
 	if err != nil {
 		log.Panic(err)
+		return
 	}
 
 	defer prod.Close()
 
-	strangerBytes, err := coords.MarshalJSON()
+	strangerBytes, err := coords.JSON()
 
 	if err != nil {
 		log.Panic(err)
+		return
 	}
 
 	_, _, err = prod.SendMessage("Coordenadas", rand.Int31n(2), strangerBytes)
 
 	if err != nil {
 		log.Panic(err)
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})

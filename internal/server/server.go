@@ -2,60 +2,72 @@ package server
 
 import (
 	"log"
-	"os"
-	"strconv"
 
 	"github.com/Shopify/sarama"
+	"github.com/dvher/Tarea2SD/pkg/brokers"
 	"github.com/gin-gonic/gin"
 )
 
-var BrokerList []string
-
-func getBrokerList() {
-	for i := 1; ; i++ {
-		broker := os.Getenv("BROKER_NET_" + strconv.Itoa(i))
-		if broker == "" {
-			break
-		}
-		BrokerList = append(BrokerList, broker)
-	}
-}
-
 func New() *gin.Engine {
-
-	getBrokerList()
-
-	if len(BrokerList) == 0 {
-		log.Fatal("No brokers found")
-	}
 
 	config := sarama.NewConfig()
 
-	admin, err := sarama.NewClusterAdmin(BrokerList, config)
+	admin, err := sarama.NewClusterAdmin(brokers.Brokers, config)
 
 	if err != nil {
 		log.Panic(err)
 	}
 
-	admin.CreateTopic("Ventas", &sarama.TopicDetail{
-		NumPartitions:     2,
-		ReplicationFactor: 1,
-	}, false)
+	topics, err := admin.ListTopics()
 
-	admin.CreateTopic("Stock", &sarama.TopicDetail{
-		NumPartitions:     2,
-		ReplicationFactor: 1,
-	}, false)
+	if err != nil {
+		log.Panic(err)
+	}
 
-	admin.CreateTopic("Coordenadas", &sarama.TopicDetail{
-		NumPartitions:     2,
-		ReplicationFactor: 1,
-	}, false)
+	if _, exists := topics["Ventas"]; !exists {
+		err = admin.CreateTopic("Ventas", &sarama.TopicDetail{
+			NumPartitions:     2,
+			ReplicationFactor: 1,
+		}, false)
 
-	admin.CreateTopic("Membresias", &sarama.TopicDetail{
-		NumPartitions:     2,
-		ReplicationFactor: 1,
-	}, false)
+		if err != nil {
+			log.Panic(err)
+		}
+
+	}
+
+	if _, exists := topics["Stock"]; !exists {
+		err = admin.CreateTopic("Stock", &sarama.TopicDetail{
+			NumPartitions:     2,
+			ReplicationFactor: 1,
+		}, false)
+
+		if err != nil {
+			log.Panic(err)
+		}
+	}
+
+	if _, exists := topics["Coordenadas"]; !exists {
+		err = admin.CreateTopic("Coordenadas", &sarama.TopicDetail{
+			NumPartitions:     2,
+			ReplicationFactor: 1,
+		}, false)
+
+		if err != nil {
+			log.Panic(err)
+		}
+	}
+
+	if _, exists := topics["Membresias"]; !exists {
+		err = admin.CreateTopic("Membresias", &sarama.TopicDetail{
+			NumPartitions:     2,
+			ReplicationFactor: 1,
+		}, false)
+
+		if err != nil {
+			log.Panic(err)
+		}
+	}
 
 	defer admin.Close()
 

@@ -1,15 +1,15 @@
-module tarea2sd
+module github.com/dvher/Tarea2SD
 
 go 1.19
 
 require (
+	github.com/Shopify/sarama v1.37.2
 	github.com/gin-gonic/gin v1.8.1
 	github.com/joho/godotenv v1.4.0
 	github.com/lib/pq v1.10.7
 )
 
 require (
-	github.com/Shopify/sarama v1.37.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/eapache/go-resiliency v1.3.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21 // indirect

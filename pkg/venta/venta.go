@@ -5,14 +5,14 @@ import (
 )
 
 type Venta struct {
-	Maestro  string    `json:"maestro"`
-	Cliente  string    `json:"cliente"`
-	Cantidad string    `json:"cantidad"`
-	Hora     string    `json:"hora"`
-	Stock    string    `json:"stock"`
-	Coords   []float64 `json:"ubicacion"`
+	Maestro  string     `json:"maestro,omitempty"`
+	Cliente  string     `json:"cliente"`
+	Cantidad int        `json:"cantidad"`
+	Hora     string     `json:"hora"`
+	Stock    int        `json:"stock"`
+	Coords   [2]float64 `json:"coords"`
 }
 
-func (v *Venta) MarshalJSON() ([]byte, error) {
+func (v *Venta) JSON() ([]byte, error) {
 	return json.Marshal(v)
 }

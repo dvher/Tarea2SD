@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"log"
-	"tarea2sd/internal/server"
 
+	"github.com/dvher/Tarea2SD/internal/server"
 	_ "github.com/joho/godotenv/autoload"
 )
 

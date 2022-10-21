@@ -22,12 +22,13 @@ services:
       - KAFKA_BROKER_ID=1
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
     networks:
       - kafka-network
     container_name: kafka
     depends_on:
       - zookeeper
-    postgres:
+  postgres:
     image: 'postgres:latest'
     ports:
       - '5432:5432'
@@ -35,4 +36,6 @@ services:
       - POSTGRES_USER=$DB_USER
       - POSTGRES_PASSWORD=$DB_PASS
       - POSTGRES_DB=$DB_NAME
+    networks:
+      - kafka-network
     container_name: postgres
