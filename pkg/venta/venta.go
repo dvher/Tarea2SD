@@ -5,7 +5,7 @@ import (
 )
 
 type Venta struct {
-	Maestro  string     `json:"maestro,omitempty"`
+	Maestro  string     `json:"maestro"`
 	Cliente  string     `json:"cliente"`
 	Cantidad int        `json:"cantidad"`
 	Hora     string     `json:"hora"`
