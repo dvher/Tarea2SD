@@ -16,3 +16,7 @@ type Miembro struct {
 func (m *Miembro) JSON() ([]byte, error) {
 	return json.Marshal(m)
 }
+
+func (m *Miembro) JSONIndent() ([]byte, error) {
+	return json.MarshalIndent(m, "", "\t")
+}

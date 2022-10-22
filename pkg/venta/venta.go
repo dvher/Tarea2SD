@@ -16,3 +16,7 @@ type Venta struct {
 func (v *Venta) JSON() ([]byte, error) {
 	return json.Marshal(v)
 }
+
+func (v *Venta) JSONIndent() ([]byte, error) {
+	return json.MarshalIndent(v, "", "\t")
+}

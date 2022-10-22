@@ -31,7 +31,6 @@ func getVentas() (sales []venta.Venta) {
 	defer consume.Close()
 
 	for msg := range consume.Messages() {
-		log.Println("Consuming")
 		var sale venta.Venta
 		err = json.Unmarshal(msg.Value, &sale)
 		if err != nil {
@@ -39,6 +38,9 @@ func getVentas() (sales []venta.Venta) {
 			continue
 		}
 		sales = append(sales, sale)
+		if consumer.IsLastMessage(consume, msg) {
+			break
+		}
 	}
 
 	consume2, err := cons.ConsumeFromBeginning("Ventas", 1)
@@ -57,9 +59,19 @@ func getVentas() (sales []venta.Venta) {
 			continue
 		}
 		sales = append(sales, sale)
+		if consumer.IsLastMessage(consume2, msg) {
+			break
+		}
 	}
 
-	fmt.Println("Finished")
+	for _, sale := range sales {
+		txt, err := sale.JSONIndent()
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		fmt.Println(txt)
+	}
 
 	return
 

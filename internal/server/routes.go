@@ -93,14 +93,14 @@ func registerSale(c *gin.Context) {
 		return
 	}
 
-	topic, part, err := prod.SendMessage("Ventas", rand.Int31n(2), saleBytes)
+	part, offs, err := prod.SendMessage("Ventas", rand.Int31n(2), saleBytes)
 
 	if err != nil {
 		log.Panic(err)
 		return
 	}
 
-	log.Printf("Queued in %d, %d\n", topic, part)
+	log.Printf("Queued in %d, %d\n", part, offs)
 
 	_, _, err = prod.SendMessage("Coordenadas", rand.Int31n(2), coordsBytes)
 

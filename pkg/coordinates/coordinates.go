@@ -11,3 +11,7 @@ type Coordinates struct {
 func (c *Coordinates) JSON() ([]byte, error) {
 	return json.Marshal(c)
 }
+
+func (c *Coordinates) JSONIndent() ([]byte, error) {
+	return json.MarshalIndent(c, "", "\t")
+}

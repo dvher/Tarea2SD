@@ -70,3 +70,7 @@ func (c *Consumer) ConsumeFromBeginning(topic string, partition int32) (sarama.P
 func (c *ConsumerGroup) Consume(topic string, handler sarama.ConsumerGroupHandler) error {
 	return c.Consumer.Consume(context.Background(), []string{topic}, handler)
 }
+
+func IsLastMessage(cons sarama.PartitionConsumer, msg *sarama.ConsumerMessage) bool {
+	return cons.HighWaterMarkOffset() == msg.Offset+1
+}
