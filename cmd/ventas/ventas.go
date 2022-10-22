@@ -70,7 +70,7 @@ func getVentas() (sales []venta.Venta) {
 			log.Println(err)
 			continue
 		}
-		fmt.Println(txt)
+		fmt.Println(string(txt))
 	}
 
 	return
