@@ -31,6 +31,7 @@ func getVentas() (sales []venta.Venta) {
 	defer consume.Close()
 
 	for msg := range consume.Messages() {
+		log.Println("Consuming")
 		var sale venta.Venta
 		err = json.Unmarshal(msg.Value, &sale)
 		if err != nil {
