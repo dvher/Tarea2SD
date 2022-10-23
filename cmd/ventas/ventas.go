@@ -16,6 +16,10 @@ func getVentas() (sales []venta.Venta) {
 
 	cons, err := consumer.NewConsumer(brokers.Brokers)
 
+	if err != nil {
+		log.Panic(err)
+	}
+
 	defer cons.Close()
 
 	consume, err := cons.ConsumeFromBeginning("Ventas", 0)
@@ -26,21 +30,15 @@ func getVentas() (sales []venta.Venta) {
 
 	defer consume.Close()
 
-	for {
-		select {
-		case msg := <-consume.Messages():
-			var sale venta.Venta
-			err = json.Unmarshal(msg.Value, &sale)
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-			sales = append(sales, sale)
-			if consumer.IsLastMessage(consume, msg) {
-				break
-			}
-		case err := <-consume.Errors():
+	for msg := range consume.Messages() {
+		var sale venta.Venta
+		err = json.Unmarshal(msg.Value, &sale)
+		if err != nil {
 			log.Println(err)
+			continue
+		}
+		sales = append(sales, sale)
+		if consumer.IsLastMessage(consume, msg) {
 			break
 		}
 	}
@@ -53,21 +51,15 @@ func getVentas() (sales []venta.Venta) {
 
 	defer consume2.Close()
 
-	for {
-		select {
-		case msg := <-consume2.Messages():
-			var sale venta.Venta
-			err = json.Unmarshal(msg.Value, &sale)
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-			sales = append(sales, sale)
-			if consumer.IsLastMessage(consume2, msg) {
-				break
-			}
-		case err := <-consume2.Errors():
+	for msg := range consume2.Messages() {
+		var sale venta.Venta
+		err = json.Unmarshal(msg.Value, &sale)
+		if err != nil {
 			log.Println(err)
+			continue
+		}
+		sales = append(sales, sale)
+		if consumer.IsLastMessage(consume2, msg) {
 			break
 		}
 	}
