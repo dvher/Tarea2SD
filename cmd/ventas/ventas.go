@@ -1,7 +1,7 @@
 package main
 
 import (
-	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -16,27 +16,56 @@ import (
 
 func getVentas() (sales []venta.Venta) {
 
-	ctx, cancel := context.WithCancel(context.Background())
-
-	Handler := &consumer.ConsumerHandler{
-		Ready: make(chan bool),
-	}
-	cons, err := consumer.NewConsumerGroup(brokers.Brokers, "ventas")
+	cons, err := consumer.NewConsumer(brokers.Brokers)
 
 	if err != nil {
 		log.Panic(err)
 	}
 
 	defer cons.Close()
-	//<-Handler.Ready
 
-	err = cons.Consume(ctx, "ventas", Handler)
+	consume, err := cons.ConsumeFromBeginning("Ventas", 0)
+
 	if err != nil {
 		log.Panic(err)
+	}
+
+	defer consume.Close()
+
+	for msg := range consume.Messages() {
+		var sale venta.Venta
+		err = json.Unmarshal(msg.Value, &sale)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		sales = append(sales, sale)
+		if consumer.IsLastMessage(consume, msg) {
+			break
+		}
 
 	}
 
-	cancel()
+	consume2, err := cons.ConsumeFromBeginning("Ventas", 1)
+
+	if err != nil {
+		log.Panic(err)
+	}
+
+	defer consume2.Close()
+
+	for msg := range consume2.Messages() {
+		var sale venta.Venta
+		err = json.Unmarshal(msg.Value, &sale)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		sales = append(sales, sale)
+		if consumer.IsLastMessage(consume2, msg) {
+			break
+		}
+	}
 
 	for _, sale := range sales {
 		txt, err := sale.JSONIndent()
@@ -52,10 +81,9 @@ func getVentas() (sales []venta.Venta) {
 }
 
 func main() {
-	//Sera pq se ejecuta cada 24hrs
+
 	ticker := time.NewTicker(24 * time.Hour)
 
-	//queda pegado
 	for {
 		go getVentas()
 		<-ticker.C
