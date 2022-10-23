@@ -14,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+//maestro aleatorio
 func registerMember(c *gin.Context) {
 
 	member := new(miembro.Miembro)

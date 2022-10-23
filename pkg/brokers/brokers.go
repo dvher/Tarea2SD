@@ -17,6 +17,10 @@ func init() {
 func getBrokerList() {
 	broker := os.Getenv("BROKER_NET")
 
+	if broker == "" {
+		broker = "localhost:9092"
+	}
+
 	Brokers = strings.Split(broker, ",")
 
 	if len(Brokers) == 0 {
