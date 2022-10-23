@@ -1,9 +1,10 @@
 package main
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/dvher/Tarea2SD/internal/consumer"
@@ -12,57 +13,53 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
+//map de ventas y genera maestro aleatorio
+
 func getVentas() (sales []venta.Venta) {
 
-	cons, err := consumer.NewConsumer(brokers.Brokers)
+	ctx, cancel := context.WithCancel(context.Background())
+
+	handler := &consumer.ConsumerHandler{
+		Ready: make(chan bool),
+	}
+
+	cons, err := consumer.NewConsumerGroup(brokers.Brokers, "ventas")
 
 	if err != nil {
 		log.Panic(err)
 	}
 
 	defer cons.Close()
+	//<-Handler.Ready
 
-	consume, err := cons.ConsumeFromBeginning("Ventas", 0)
-
-	if err != nil {
-		log.Panic(err)
-	}
-
-	defer consume.Close()
-
-	for msg := range consume.Messages() {
-		var sale venta.Venta
-		err = json.Unmarshal(msg.Value, &sale)
-		if err != nil {
-			log.Println(err)
-			continue
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			if err := cons.Consume(ctx, []string{"ventas"}, handler); err != nil {
+				log.Panicf("Error from consumer: %v", err)
+			}
+			// check if context was cancelled, signaling that the consumer should stop
+			if ctx.Err() != nil {
+				return
+			}
+			handler.Ready = make(chan bool)
 		}
-		sales = append(sales, sale)
-		if consumer.IsLastMessage(consume, msg) {
-			break
-		}
-	}
+	}()
 
-	consume2, err := cons.ConsumeFromBeginning("Ventas", 1)
+	<-handler.Ready // Await till the consumer has been set up
 
-	if err != nil {
-		log.Panic(err)
-	}
+	keepRunning := true
 
-	defer consume2.Close()
-
-	for msg := range consume2.Messages() {
-		var sale venta.Venta
-		err = json.Unmarshal(msg.Value, &sale)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		sales = append(sales, sale)
-		if consumer.IsLastMessage(consume2, msg) {
-			break
+	for keepRunning {
+		select {
+		case <-ctx.Done():
+			keepRunning = false
 		}
 	}
+
+	cancel()
 
 	for _, sale := range sales {
 		txt, err := sale.JSONIndent()
@@ -78,9 +75,10 @@ func getVentas() (sales []venta.Venta) {
 }
 
 func main() {
-
+	//Sera pq se ejecuta cada 24hrs
 	ticker := time.NewTicker(24 * time.Hour)
 
+	//queda pegado
 	for {
 		go getVentas()
 		<-ticker.C
