@@ -31,8 +31,15 @@ func (c *Consumer) Close() error {
 
 func NewConsumerGroup(brokersUrl []string, groupId string) (con *ConsumerGroup, err error) {
 
+	version, err := sarama.ParseKafkaVersion("")
+
+	if err != nil {
+		log.Panicf("Error parsing Kafka version: %v", err)
+	}
+
 	config := sarama.NewConfig()
 	config.Consumer.Return.Errors = true
+	config.Version = version
 	config.Consumer.Offsets.Initial = sarama.OffsetOldest
 
 	consumer, err := sarama.NewConsumerGroup(brokersUrl, groupId, config)
@@ -98,9 +105,7 @@ func (consumer *ConsumerHandler) ConsumeClaim(session sarama.ConsumerGroupSessio
 	// Do not move the code below to a goroutine.
 	// The `ConsumeClaim` itself is called within a goroutine, see:
 	// https://github.com/Shopify/sarama/blob/main/consumer_group.go#L27-L29
-    log.Println("In claim")
 	for {
-        log.Println("Selecting")
 		select {
 		case message := <-claim.Messages():
 			log.Printf(

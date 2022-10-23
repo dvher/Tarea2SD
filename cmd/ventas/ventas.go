@@ -17,8 +17,6 @@ import (
 
 func getVentas() (sales []venta.Venta) {
 
-    log.Println("In getVentas")
-
 	ctx, cancel := context.WithCancel(context.Background())
 
 	handler := &consumer.ConsumerHandler{
@@ -39,7 +37,7 @@ func getVentas() (sales []venta.Venta) {
 	go func() {
 		defer wg.Done()
 		for {
-			if err := cons.Consume(ctx, []string{"Ventas"}, handler); err != nil {
+			if err := cons.Consume(ctx, []string{"ventas"}, handler); err != nil {
 				log.Panicf("Error from consumer: %v", err)
 			}
 			// check if context was cancelled, signaling that the consumer should stop
@@ -49,8 +47,6 @@ func getVentas() (sales []venta.Venta) {
 			handler.Ready = make(chan bool)
 		}
 	}()
-
-    log.Println("Consuming...")
 
 	<-handler.Ready // Await till the consumer has been set up
 
