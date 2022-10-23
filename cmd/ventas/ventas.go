@@ -26,15 +26,21 @@ func getVentas() (sales []venta.Venta) {
 
 	defer consume.Close()
 
-	for msg := range consume.Messages() {
-		var sale venta.Venta
-		err = json.Unmarshal(msg.Value, &sale)
-		if err != nil {
+	for {
+		select {
+		case msg := <-consume.Messages():
+			var sale venta.Venta
+			err = json.Unmarshal(msg.Value, &sale)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			sales = append(sales, sale)
+			if consumer.IsLastMessage(consume, msg) {
+				break
+			}
+		case err := <-consume.Errors():
 			log.Println(err)
-			continue
-		}
-		sales = append(sales, sale)
-		if consumer.IsLastMessage(consume, msg) {
 			break
 		}
 	}
@@ -47,15 +53,21 @@ func getVentas() (sales []venta.Venta) {
 
 	defer consume2.Close()
 
-	for msg := range consume2.Messages() {
-		var sale venta.Venta
-		err = json.Unmarshal(msg.Value, &sale)
-		if err != nil {
+	for {
+		select {
+		case msg := <-consume2.Messages():
+			var sale venta.Venta
+			err = json.Unmarshal(msg.Value, &sale)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			sales = append(sales, sale)
+			if consumer.IsLastMessage(consume2, msg) {
+				break
+			}
+		case err := <-consume2.Errors():
 			log.Println(err)
-			continue
-		}
-		sales = append(sales, sale)
-		if consumer.IsLastMessage(consume2, msg) {
 			break
 		}
 	}
