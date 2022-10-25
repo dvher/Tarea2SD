@@ -103,15 +103,13 @@ func (consumer *ConsumerHandler) ConsumeClaim(session sarama.ConsumerGroupSessio
 	// The `ConsumeClaim` itself is called within a goroutine, see:
 	// https://github.com/Shopify/sarama/blob/main/consumer_group.go#L27-L29
 
-	if claim.HighWaterMarkOffset() == 0 {
-		return nil
-	}
-
 LOOP:
 	for {
 		select {
 		case message := <-claim.Messages():
-			log.Printf("Message claimed: value = %s, timestamp = %v, topic = %s", string(message.Value), message.Timestamp, message.Topic)
+			log.Printf("Message claimed: value = %s, timestamp = %v, topic = %s, part = %d", string(message.Value), message.Timestamp, message.Topic, message.Partition)
+			session.MarkMessage(message, "")
+			log.Println(claim.HighWaterMarkOffset(), " ", message.Offset)
 
 			if claim.HighWaterMarkOffset() == message.Offset+1 {
 				break LOOP
