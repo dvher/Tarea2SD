@@ -8,13 +8,13 @@ import (
 )
 
 type Consumer struct {
-	BrokersUrl []string
-	Consumer   sarama.Consumer
+	brokersUrl []string
+	consumer   sarama.Consumer
 }
 
 type ConsumerGroup struct {
-	BrokersUrl []string
-	Consumer   sarama.ConsumerGroup
+	brokersUrl []string
+	consumer   sarama.ConsumerGroup
 }
 
 type ConsumerHandler struct {
@@ -22,16 +22,14 @@ type ConsumerHandler struct {
 }
 
 func (c *ConsumerGroup) Close() error {
-	return c.Consumer.Close()
+	return c.consumer.Close()
 }
 
 func (c *Consumer) Close() error {
-	return c.Consumer.Close()
+	return c.consumer.Close()
 }
 
-func NewConsumerGroup(brokersUrl []string, groupId string) (con *ConsumerGroup, err error) {
-
-	version, err := sarama.ParseKafkaVersion("")
+func NewConsumerGroup(brokersUrl []string, groupId string, initialOffset int64) (con *ConsumerGroup, err error) {
 
 	if err != nil {
 		log.Panicf("Error parsing Kafka version: %v", err)
@@ -39,8 +37,7 @@ func NewConsumerGroup(brokersUrl []string, groupId string) (con *ConsumerGroup, 
 
 	config := sarama.NewConfig()
 	config.Consumer.Return.Errors = true
-	config.Version = version
-	config.Consumer.Offsets.Initial = sarama.OffsetOldest
+	config.Consumer.Offsets.Initial = initialOffset
 
 	consumer, err := sarama.NewConsumerGroup(brokersUrl, groupId, config)
 
@@ -49,8 +46,8 @@ func NewConsumerGroup(brokersUrl []string, groupId string) (con *ConsumerGroup, 
 	}
 
 	con = &ConsumerGroup{
-		BrokersUrl: brokersUrl,
-		Consumer:   consumer,
+		brokersUrl: brokersUrl,
+		consumer:   consumer,
 	}
 
 	return con, nil
@@ -62,31 +59,31 @@ func NewConsumer(brokersUrl []string) (con *Consumer, err error) {
 	config.Consumer.Return.Errors = true
 
 	con = &Consumer{
-		BrokersUrl: brokersUrl,
+		brokersUrl: brokersUrl,
 	}
-	con.Consumer, err = sarama.NewConsumer(con.BrokersUrl, config)
+	con.consumer, err = sarama.NewConsumer(con.brokersUrl, config)
 
 	return
 }
 
 func (c *Consumer) Consume(topic string, partition int32, offset int64) (sarama.PartitionConsumer, error) {
-	return c.Consumer.ConsumePartition(topic, partition, offset)
+	return c.consumer.ConsumePartition(topic, partition, offset)
 }
 
 func (c *Consumer) ConsumeSinceLast(topic string, partition int32) (sarama.PartitionConsumer, error) {
-	return c.Consumer.ConsumePartition(topic, partition, sarama.OffsetNewest)
+	return c.consumer.ConsumePartition(topic, partition, sarama.OffsetNewest)
 }
 
 func (c *Consumer) ConsumeFromBeginning(topic string, partition int32) (sarama.PartitionConsumer, error) {
-	return c.Consumer.ConsumePartition(topic, partition, sarama.OffsetOldest)
+	return c.consumer.ConsumePartition(topic, partition, sarama.OffsetOldest)
+}
+
+func (c *Consumer) Partitions(topic string) ([]int32, error) {
+	return c.consumer.Partitions(topic)
 }
 
 func (c *ConsumerGroup) Consume(ctx context.Context, topics []string, handler sarama.ConsumerGroupHandler) error {
-	return c.Consumer.Consume(ctx, topics, handler)
-}
-
-func IsLastMessage(cons sarama.PartitionConsumer, msg *sarama.ConsumerMessage) bool {
-	return cons.HighWaterMarkOffset() == msg.Offset+1
+	return c.consumer.Consume(ctx, topics, handler)
 }
 
 func (consumer *ConsumerHandler) Setup(sarama.ConsumerGroupSession) error {
@@ -105,11 +102,20 @@ func (consumer *ConsumerHandler) ConsumeClaim(session sarama.ConsumerGroupSessio
 	// Do not move the code below to a goroutine.
 	// The `ConsumeClaim` itself is called within a goroutine, see:
 	// https://github.com/Shopify/sarama/blob/main/consumer_group.go#L27-L29
+
+	if claim.HighWaterMarkOffset() == 0 {
+		return nil
+	}
+
+LOOP:
 	for {
 		select {
 		case message := <-claim.Messages():
 			log.Printf("Message claimed: value = %s, timestamp = %v, topic = %s", string(message.Value), message.Timestamp, message.Topic)
-			session.MarkMessage(message, "")
+
+			if claim.HighWaterMarkOffset() == message.Offset+1 {
+				break LOOP
+			}
 
 		// Should return when `session.Context()` is done.
 		// If not, will raise `ErrRebalanceInProgress` or `read tcp <ip>:<port>: i/o timeout` when kafka rebalance. see:
@@ -118,4 +124,10 @@ func (consumer *ConsumerHandler) ConsumeClaim(session sarama.ConsumerGroupSessio
 			return nil
 		}
 	}
+
+	return nil
+}
+
+func IsLastMessage(cons sarama.PartitionConsumer, msg *sarama.ConsumerMessage) bool {
+	return cons.HighWaterMarkOffset() == msg.Offset+1
 }

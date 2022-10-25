@@ -29,7 +29,7 @@ services:
     depends_on:
       - zookeeper
   postgres:
-    image: 'postgres:latest'
+    image: 'bitnami/postgresql:latest'
     ports:
       - '5432:5432'
     environment:
