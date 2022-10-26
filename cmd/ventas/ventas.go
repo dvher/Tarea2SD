@@ -1,13 +1,16 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"os"
+	"sync"
 	"time"
 
+	"github.com/Shopify/sarama"
 	"github.com/dvher/Tarea2SD/internal/consumer"
 	"github.com/dvher/Tarea2SD/pkg/brokers"
 	"github.com/dvher/Tarea2SD/pkg/venta"
@@ -136,58 +139,62 @@ func getVentas() (sales map[string][]venta.Venta) {
 
 	sales = make(map[string][]venta.Venta)
 
-	cons, err := consumer.NewConsumer(brokers.Brokers)
+	cons, err := consumer.NewConsumerGroup(brokers.Brokers, "ventas", sarama.OffsetOldest)
 
 	if err != nil {
 		log.Panic(err)
 	}
-
-	partitions, err := cons.Partitions("Ventas")
 
 	defer cons.Close()
 
-	if err != nil {
-		log.Panic(err)
-	}
+	ch := consumer.ConsumerHandler{
+		Ready: make(chan bool),
+		F: func(msg *sarama.ConsumerMessage) {
+			var v venta.Venta
+			err := json.Unmarshal(msg.Value, &v)
 
-	for i := range partitions {
-		consume, err := cons.ConsumeFromBeginning("Ventas", int32(i))
-
-		if err != nil {
-			log.Panic(err)
-		}
-
-		hwmo := consume.HighWaterMarkOffset()
-
-	HWMO_LOOP:
-		for hwmo != 0 {
-
-			select {
-			case msg := <-consume.Messages():
-				var sale venta.Venta
-
-				err := json.Unmarshal(msg.Value, &sale)
-
-				if err != nil {
-					log.Panic(err)
-				}
-
-				sales[sale.Maestro] = append(sales[sale.Maestro], sale)
-
-				if consumer.IsLastMessage(consume, msg) {
-					break HWMO_LOOP
-				}
-
-			case err := <-consume.Errors():
-				consume.Close()
+			if err != nil {
 				log.Panic(err)
 			}
 
-		}
-
-		consume.Close()
-
+			if _, ok := sales[v.Maestro]; ok {
+				sales[v.Maestro] = append(sales[v.Maestro], v)
+			} else {
+				sales[v.Maestro] = []venta.Venta{v}
+			}
+		},
 	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		for {
+			if err := cons.Consume(ctx, []string{"Ventas"}, &ch); err != nil {
+				log.Panic(err)
+			}
+
+			if ctx.Err() != nil {
+				return
+			}
+
+			ch.Ready = make(chan bool)
+
+		}
+	}()
+
+	<-ch.Ready
+
+	for {
+		<-ctx.Done()
+		break
+	}
+
+	cancel()
+	wg.Wait()
 
 	return
 

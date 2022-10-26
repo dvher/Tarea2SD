@@ -19,6 +19,7 @@ type ConsumerGroup struct {
 
 type ConsumerHandler struct {
 	Ready chan bool
+	F     func(msg *sarama.ConsumerMessage)
 }
 
 func (c *ConsumerGroup) Close() error {
@@ -110,6 +111,10 @@ LOOP:
 			log.Printf("Message claimed: value = %s, timestamp = %v, topic = %s, part = %d", string(message.Value), message.Timestamp, message.Topic, message.Partition)
 			session.MarkMessage(message, "")
 			log.Println(claim.HighWaterMarkOffset(), " ", message.Offset)
+
+			if consumer.F != nil {
+				consumer.F(message)
+			}
 
 			if claim.HighWaterMarkOffset() == message.Offset+1 {
 				break LOOP
