@@ -69,8 +69,6 @@ func registerSale(c *gin.Context) {
 		return
 	}
 
-	coords := coordinates.Coordinates{Coords: sale.Coords}
-
 	prod, err := producer.NewProducer(brokers.Brokers)
 
 	if err != nil {
@@ -87,13 +85,6 @@ func registerSale(c *gin.Context) {
 		return
 	}
 
-	coordsBytes, err := coords.JSON()
-
-	if err != nil {
-		log.Panic(err)
-		return
-	}
-
 	part, offs, err := prod.SendMessage("Ventas", rand.Int31n(2), saleBytes)
 
 	if err != nil {
@@ -102,13 +93,6 @@ func registerSale(c *gin.Context) {
 	}
 
 	log.Printf("Queued in %d, %d\n", part, offs)
-
-	_, _, err = prod.SendMessage("Coordenadas", rand.Int31n(2), coordsBytes)
-
-	if err != nil {
-		log.Panic(err)
-		return
-	}
 
 	fmt.Println(string(saleBytes))
 
@@ -142,7 +126,44 @@ func registerStrange(c *gin.Context) {
 		return
 	}
 
-	_, _, err = prod.SendMessage("Coordenadas", rand.Int31n(2), strangerBytes)
+	_, _, err = prod.SendMessage("Coordenadas", 0, strangerBytes)
+
+	if err != nil {
+		log.Panic(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+}
+
+func registerCoords(c *gin.Context) {
+
+	coords := new(coordinates.Coordinates)
+
+	err := c.BindJSON(coords)
+
+	if err != nil {
+		log.Panic(err)
+		return
+	}
+
+	prod, err := producer.NewProducer(brokers.Brokers)
+
+	if err != nil {
+		log.Panic(err)
+		return
+	}
+
+	defer prod.Close()
+
+	strangerBytes, err := coords.JSON()
+
+	if err != nil {
+		log.Panic(err)
+		return
+	}
+
+	_, _, err = prod.SendMessage("Coordenadas", 1, strangerBytes)
 
 	if err != nil {
 		log.Panic(err)

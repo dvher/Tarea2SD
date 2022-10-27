@@ -77,6 +77,7 @@ func New() *gin.Engine {
 	r.POST("/member", registerMember)
 	r.POST("/sale", registerSale)
 	r.POST("/strange", registerStrange)
+	r.POST("/coords", registerCoords)
 
 	return r
 }

@@ -5,7 +5,8 @@ import (
 )
 
 type Coordinates struct {
-	Coords [2]float64 `json:"coords"`
+	Coords  [2]float64 `json:"coords"`
+	Miembro string     `json:"rut,omitempty"`
 }
 
 func (c *Coordinates) JSON() ([]byte, error) {
