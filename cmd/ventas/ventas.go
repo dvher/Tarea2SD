@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -157,44 +156,17 @@ func getVentas() (sales map[string][]venta.Venta) {
 				log.Panic(err)
 			}
 
-			if _, ok := sales[v.Maestro]; ok {
-				sales[v.Maestro] = append(sales[v.Maestro], v)
-			} else {
-				sales[v.Maestro] = []venta.Venta{v}
-			}
+			sales[v.Maestro] = append(sales[v.Maestro], v)
 		},
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
-		for {
-			if err := cons.Consume(ctx, []string{"Ventas"}, &ch); err != nil {
-				log.Panic(err)
-			}
-
-			if ctx.Err() != nil {
-				return
-			}
-
-			ch.Ready = make(chan bool)
-
-		}
-	}()
-
-	<-ch.Ready
-
-	for {
-		<-ctx.Done()
-		break
+	if err := cons.Consume(ctx, []string{"Ventas"}, &ch); err != nil {
+		log.Panic(err)
 	}
 
 	cancel()
-	wg.Wait()
 
 	return
 
