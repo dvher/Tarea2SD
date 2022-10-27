@@ -54,11 +54,9 @@ func sendVentas(v venta.Venta) {
 
 	body := strings.NewReader(string(txt))
 
-	_, err = http.Post("http://localhost:8000/sale", "application/json", body)
-	if err != nil {
+	if _, err = http.Post("http://localhost:8000/sale", "application/json", body); err != nil {
 		log.Panic(err)
 	}
-	return
 
 }
 
@@ -73,8 +71,9 @@ func sendMiembro(m miembro.Miembro) {
 
 	body := strings.NewReader(string(txt))
 
-	http.Post("http://localhost:8000/member", "application/json", body)
-	return
+	if _, err = http.Post("http://localhost:8000/member", "application/json", body); err != nil {
+		log.Panic(err)
+	}
 }
 
 func sendCoords(c coordinates.Coordinates) {
@@ -86,8 +85,9 @@ func sendCoords(c coordinates.Coordinates) {
 
 	body := strings.NewReader(string(txt))
 
-	http.Post("http://localhost:8000/coords", "application/json", body)
-	return
+	if _, err = http.Post("http://localhost:8000/coords", "application/json", body); err != nil {
+		log.Panic(err)
+	}
 }
 
 func main() {
@@ -127,7 +127,7 @@ func main() {
 
 	for opcion != 4 {
 
-		fmt.Println("----------MENU----------\n")
+		fmt.Printf("----------MENU----------\n\n")
 		fmt.Println("1. Ingresar miembro ")
 		fmt.Println("2. Enviar venta ")
 		fmt.Println("3. Enviar coordenadas carrito profugo")
@@ -139,13 +139,10 @@ func main() {
 		switch opcion {
 		case 1:
 			sendMiembro(m)
-			break
 		case 2:
 			sendVentas(v)
-			break
 		case 3:
 			sendCoords(c)
-			break
 		}
 
 	}

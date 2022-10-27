@@ -7,11 +7,6 @@ import (
 	"github.com/Shopify/sarama"
 )
 
-type Consumer struct {
-	brokersUrl []string
-	consumer   sarama.Consumer
-}
-
 type ConsumerGroup struct {
 	brokersUrl []string
 	consumer   sarama.ConsumerGroup
@@ -23,10 +18,6 @@ type ConsumerHandler struct {
 }
 
 func (c *ConsumerGroup) Close() error {
-	return c.consumer.Close()
-}
-
-func (c *Consumer) Close() error {
 	return c.consumer.Close()
 }
 
@@ -52,35 +43,6 @@ func NewConsumerGroup(brokersUrl []string, groupId string, initialOffset int64) 
 	}
 
 	return con, nil
-}
-
-func NewConsumer(brokersUrl []string) (con *Consumer, err error) {
-
-	config := sarama.NewConfig()
-	config.Consumer.Return.Errors = true
-
-	con = &Consumer{
-		brokersUrl: brokersUrl,
-	}
-	con.consumer, err = sarama.NewConsumer(con.brokersUrl, config)
-
-	return
-}
-
-func (c *Consumer) Consume(topic string, partition int32, offset int64) (sarama.PartitionConsumer, error) {
-	return c.consumer.ConsumePartition(topic, partition, offset)
-}
-
-func (c *Consumer) ConsumeSinceLast(topic string, partition int32) (sarama.PartitionConsumer, error) {
-	return c.consumer.ConsumePartition(topic, partition, sarama.OffsetNewest)
-}
-
-func (c *Consumer) ConsumeFromBeginning(topic string, partition int32) (sarama.PartitionConsumer, error) {
-	return c.consumer.ConsumePartition(topic, partition, sarama.OffsetOldest)
-}
-
-func (c *Consumer) Partitions(topic string) ([]int32, error) {
-	return c.consumer.Partitions(topic)
 }
 
 func (c *ConsumerGroup) Consume(ctx context.Context, topics []string, handler sarama.ConsumerGroupHandler) error {
@@ -129,8 +91,4 @@ LOOP:
 	}
 
 	return nil
-}
-
-func IsLastMessage(cons sarama.PartitionConsumer, msg *sarama.ConsumerMessage) bool {
-	return cons.HighWaterMarkOffset() == msg.Offset+1
 }
