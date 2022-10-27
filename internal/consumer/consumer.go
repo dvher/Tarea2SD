@@ -23,10 +23,6 @@ func (c *ConsumerGroup) Close() error {
 
 func NewConsumerGroup(brokersUrl []string, groupId string, initialOffset int64) (con *ConsumerGroup, err error) {
 
-	if err != nil {
-		log.Panicf("Error parsing Kafka version: %v", err)
-	}
-
 	config := sarama.NewConfig()
 	config.Consumer.Return.Errors = true
 	config.Consumer.Offsets.Initial = initialOffset
