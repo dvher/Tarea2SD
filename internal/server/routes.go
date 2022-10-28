@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
@@ -85,16 +84,19 @@ func registerSale(c *gin.Context) {
 		return
 	}
 
-	part, offs, err := prod.SendMessage("Ventas", rand.Int31n(2), saleBytes)
+	_, _, err = prod.SendMessage("Ventas", rand.Int31n(2), saleBytes)
 
 	if err != nil {
 		log.Panic(err)
 		return
 	}
 
-	log.Printf("Queued in %d, %d\n", part, offs)
+	_, _, err = prod.SendMessage("Stock", rand.Int31n(2), saleBytes)
 
-	fmt.Println(string(saleBytes))
+	if err != nil {
+		log.Panic(err)
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
