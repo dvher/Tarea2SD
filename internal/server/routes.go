@@ -172,7 +172,3 @@ func registerCoords(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
-
-func ping(c *gin.Context) {
-	c.String(http.StatusOK, "pong")
-}

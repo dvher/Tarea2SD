@@ -73,7 +73,6 @@ func New() *gin.Engine {
 
 	r := gin.Default()
 
-	r.GET("/ping", ping)
 	r.POST("/member", registerMember)
 	r.POST("/sale", registerSale)
 	r.POST("/strange", registerStrange)
