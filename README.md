@@ -38,3 +38,9 @@ Procesamiento de Stock
 ```
 go run cmd/stock/stock.go
 ```
+
+Procesamiento de Miembros
+
+```
+go run cmd/member/member.go
+```
