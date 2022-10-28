@@ -33,6 +33,11 @@ func sendLocation() {
 	ticker := time.NewTicker(time.Duration(rand.Intn(70)) * time.Second)
 
 	for {
+
+		if currMember == "" {
+			continue
+		}
+
 		xy := generateCoords(0, 100)
 		c := coordinates.Coordinates{
 			Coords:  xy,
