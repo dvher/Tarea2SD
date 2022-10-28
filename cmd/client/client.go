@@ -125,7 +125,7 @@ func getMember() miembro.Miembro {
 	for len(patente) > 6 {
 		fmt.Println("La patente debe tener 6 o menos caracteres")
 		fmt.Print("Ingrese nuevamente: ")
-		fmt.Scan(&email)
+		fmt.Scan(&patente)
 	}
 
 	fmt.Print("Es usuario premium?: ")
