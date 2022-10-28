@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS Miembros (
+    id SERIAL NOT NULL,
+    nombre VARCHAR(50) NOT NULL,
+    apellido VARCHAR(50) NOT NULL,
+    rut VARCHAR(12) UNIQUE NOT NULL,
+    email VARCHAR(50) NOT NULL,
+    patente VARCHAR(6) NOT NULL,
+    premium BOOLEAN NOT NULL,
+    PRIMARY KEY (id)
+);

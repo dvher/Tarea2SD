@@ -16,6 +16,8 @@ func New() *sql.DB {
 		log.Panic(err)
 	}
 
+	log.Println("Connected to database")
+
 	return db
 
 }

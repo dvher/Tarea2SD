@@ -160,7 +160,7 @@ func getVentas() (sales map[string][]venta.Venta) {
 		},
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 
 	if err := cons.Consume(ctx, []string{"Ventas"}, &ch); err != nil {
 		log.Panic(err)

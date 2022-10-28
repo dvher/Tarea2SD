@@ -14,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//maestro aleatorio
+// maestro aleatorio
 func registerMember(c *gin.Context) {
 
 	member := new(miembro.Miembro)
@@ -48,7 +48,7 @@ func registerMember(c *gin.Context) {
 		part = int32(1)
 	}
 
-	_, _, err = prod.SendMessage("Membresia", part, memberBytes)
+	_, _, err = prod.SendMessage("Membresias", part, memberBytes)
 
 	if err != nil {
 		log.Panic(err)

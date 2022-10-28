@@ -35,7 +35,9 @@ services:
     environment:
       - POSTGRES_USER=$DB_USER
       - POSTGRES_PASSWORD=$DB_PASS
-      - POSTGRES_DB=$DB_NAME
+      - POSTGRES_DATABASE=$DB_NAME
+    volumes:
+      - ./db/dump.sql:/docker-entrypoint-initdb.d/dump.sql
     networks:
       - kafka-network
     container_name: postgres

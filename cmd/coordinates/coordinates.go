@@ -11,7 +11,7 @@ import (
 	"github.com/Shopify/sarama"
 	"github.com/dvher/Tarea2SD/internal/consumer"
 	"github.com/dvher/Tarea2SD/pkg/brokers"
-	coordinates "github.com/dvher/Tarea2SD/pkg/coordinates"
+	"github.com/dvher/Tarea2SD/pkg/coordinates"
 )
 
 var profugos []coordinates.Coordinates

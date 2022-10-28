@@ -2,7 +2,6 @@ package consumer
 
 import (
 	"context"
-	"log"
 
 	"github.com/Shopify/sarama"
 )
@@ -66,15 +65,13 @@ LOOP:
 	for {
 		select {
 		case message := <-claim.Messages():
-			log.Printf("Message claimed: value = %s, timestamp = %v, topic = %s, part = %d", string(message.Value), message.Timestamp, message.Topic, message.Partition)
 			session.MarkMessage(message, "")
-			log.Println(claim.HighWaterMarkOffset(), " ", message.Offset)
 
 			if consumer.F != nil {
 				consumer.F(message)
 			}
 
-			if claim.HighWaterMarkOffset() == message.Offset+1 {
+			if claim.HighWaterMarkOffset() == message.Offset+1 || claim.HighWaterMarkOffset() == 0 {
 				break LOOP
 			}
 

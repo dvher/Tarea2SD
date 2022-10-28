@@ -13,9 +13,9 @@ import (
 	"github.com/dvher/Tarea2SD/pkg/venta"
 )
 
-var member []string
-var r *rand.Rand
-var n int
+var (
+	currMember string
+)
 
 func generateCoords(min, max float64) [2]float64 {
 
@@ -36,7 +36,7 @@ func sendLocation() {
 		xy := generateCoords(0, 100)
 		c := coordinates.Coordinates{
 			Coords:  xy,
-			Miembro: member[n],
+			Miembro: currMember,
 		}
 		sendCoords(c)
 		<-ticker.C
@@ -44,8 +44,6 @@ func sendLocation() {
 }
 
 func sendVentas(v venta.Venta) {
-
-	v.Maestro = member[n]
 
 	txt, err := v.JSON()
 	if err != nil {
@@ -61,8 +59,6 @@ func sendVentas(v venta.Venta) {
 }
 
 func sendMiembro(m miembro.Miembro) {
-
-	m.Rut = member[n]
 
 	txt, err := m.JSON()
 	if err != nil {
@@ -90,59 +86,155 @@ func sendCoords(c coordinates.Coordinates) {
 	}
 }
 
+func getMember() miembro.Miembro {
+	var (
+		nombre   string
+		apellido string
+		rut      string
+		email    string
+		patente  string
+		premium  bool
+	)
+
+	fmt.Print("Ingrese el nombre del miembro: ")
+	fmt.Scanf("%s", &nombre)
+
+	fmt.Print("Ingrese el apellido del miembro: ")
+	fmt.Scanf("%s", &apellido)
+
+	fmt.Print("Ingrese el rut del miembro: ")
+	fmt.Scanln(&rut)
+
+	for len(rut) > 12 {
+		fmt.Println("El rut debe ser menor o igual a 12 caracteres.")
+		fmt.Print("Ingrese nuevamente: ")
+		fmt.Scanln(&rut)
+	}
+
+	fmt.Print("Ingrese el email del miembro: ")
+	fmt.Scanf("%s", &email)
+
+	fmt.Print("Ingrese la patente del miembro: ")
+	fmt.Scan(&patente)
+
+	for len(patente) > 6 {
+		fmt.Println("La patente debe tener 6 o menos caracteres")
+		fmt.Print("Ingrese nuevamente: ")
+		fmt.Scan(&email)
+	}
+
+	fmt.Print("Es usuario premium?: ")
+	fmt.Scan(&premium)
+
+	currMember = rut
+
+	return miembro.Miembro{
+		Nombre:   nombre,
+		Apellido: apellido,
+		Rut:      rut,
+		Email:    email,
+		Patente:  patente,
+		Premium:  premium,
+	}
+}
+
+func getVenta() (*venta.Venta, bool) {
+
+	if currMember == "" {
+		return nil, false
+	}
+
+	var (
+		cliente  string
+		cantidad int
+		hora     string
+		stock    int
+		x, y     float64
+	)
+
+	fmt.Print("Ingrese el nombre del cliente: ")
+	fmt.Scan(&cliente)
+
+	fmt.Print("Ingrese la cantidad: ")
+	fmt.Scan(&cantidad)
+
+	fmt.Print("Ingrese la hora: ")
+	fmt.Scan(&hora)
+
+	fmt.Print("Ingrese el stock restante: ")
+	fmt.Scan(&stock)
+
+	fmt.Print("Ingrese las coordenadas de la forma 'x y': ")
+	fmt.Scan(&x, &y)
+
+	return &venta.Venta{
+		Maestro:  currMember,
+		Cliente:  cliente,
+		Cantidad: cantidad,
+		Hora:     hora,
+		Stock:    stock,
+		Coords:   [2]float64{x, y},
+	}, true
+}
+
+func getCoords() coordinates.Coordinates {
+	var x, y float64
+
+	fmt.Print("Ingrese las coordenadas de la forma 'x y': ")
+	fmt.Scan(&x, &y)
+
+	return coordinates.Coordinates{
+		Coords: [2]float64{x, y},
+	}
+}
+
+func getSesion() {
+	var rut string
+
+	fmt.Print("Ingrese su rut: ")
+	fmt.Scan(&rut)
+
+	for len(rut) > 12 {
+		fmt.Println("El largo del rut debe ser de 12 o menos caracteres.")
+		fmt.Print("Ingrese nuevamente: ")
+		fmt.Scan(&rut)
+	}
+
+	currMember = rut
+}
+
 func main() {
-
-	member = []string{"1234567-8", "3456789-0", "9876543-2"}
-	r = rand.New(rand.NewSource(time.Now().Unix()))
-	n = r.Intn(len(member))
-
-	//EJEMPLOS
-	m := miembro.Miembro{
-		Nombre:   "juanito",
-		Apellido: "Perez",
-		Rut:      member[n],
-		Email:    "juantio42069@hotmail.com",
-		Patente:  "jdh3et23",
-		Premium:  false,
-	}
-
-	v := venta.Venta{
-		Maestro:  member[n],
-		Cliente:  "wo",
-		Cantidad: 10,
-		Hora:     "13:52",
-		Stock:    32,
-		Coords:   [2]float64{28, 79},
-	}
-
-	c := coordinates.Coordinates{
-		Coords: [2]float64{50, 136},
-	}
-	//EJEMPLOS
-
-	fmt.Printf("El miembro %s ha iniciado sesion.\n", member[n])
 	var opcion int
 
 	go sendLocation()
 
-	for opcion != 4 {
+	for opcion != 5 {
 
 		fmt.Printf("----------MENU----------\n\n")
-		fmt.Println("1. Ingresar miembro ")
-		fmt.Println("2. Enviar venta ")
-		fmt.Println("3. Enviar coordenadas carrito profugo")
-		fmt.Println("4. Salir")
+		fmt.Println("1. Iniciar sesion")
+		fmt.Println("2. Ingresar miembro ")
+		fmt.Println("3. Enviar venta ")
+		fmt.Println("4. Enviar coordenadas carrito profugo")
+		fmt.Println("5. Salir")
 		fmt.Println("\n--------INGRESE OPCION: ")
 
 		fmt.Scanf("%d", &opcion)
 
 		switch opcion {
 		case 1:
-			sendMiembro(m)
+			getSesion()
 		case 2:
-			sendVentas(v)
+			sendMiembro(getMember())
 		case 3:
-			sendCoords(c)
+			v, valid := getVenta()
+
+			if valid {
+				sendVentas(*v)
+			} else {
+				fmt.Println("No puede ingresar una venta sin iniciar sesion")
+			}
+		case 4:
+			sendCoords(getCoords())
 		}
 
 	}
