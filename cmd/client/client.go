@@ -93,12 +93,13 @@ func sendCoords(c coordinates.Coordinates) {
 
 func getMember() miembro.Miembro {
 	var (
-		nombre   string
-		apellido string
-		rut      string
-		email    string
-		patente  string
-		premium  bool
+		nombre     string
+		apellido   string
+		rut        string
+		email      string
+		patente    string
+		premium    bool
+		premiumVar string
 	)
 
 	fmt.Print("Ingrese el nombre del miembro: ")
@@ -128,8 +129,20 @@ func getMember() miembro.Miembro {
 		fmt.Scan(&patente)
 	}
 
-	fmt.Print("Es usuario premium?: ")
-	fmt.Scan(&premium)
+	fmt.Print("Es usuario premium? (s/n): ")
+	fmt.Scan(&premiumVar)
+
+	for premiumVar != "s" && premiumVar != "n" {
+		fmt.Println("Debe contestar s o n.")
+		fmt.Print("Ingrese nuevamente: ")
+		fmt.Scan(&premiumVar)
+	}
+
+	if premiumVar == "s" {
+		premium = true
+	} else {
+		premium = false
+	}
 
 	currMember = rut
 
