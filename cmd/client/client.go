@@ -91,6 +91,20 @@ func sendCoords(c coordinates.Coordinates) {
 	}
 }
 
+func sendGenCoords(c coordinates.Coordinates) {
+
+	txt, err := c.JSON()
+	if err != nil {
+		log.Panic(err)
+	}
+
+	body := strings.NewReader(string(txt))
+
+	if _, err = http.Post("http://localhost:8000/strange", "application/json", body); err != nil {
+		log.Panic(err)
+	}
+}
+
 func getMember() miembro.Miembro {
 	var (
 		nombre     string
@@ -252,7 +266,7 @@ func main() {
 				fmt.Println("No puede ingresar una venta sin iniciar sesion")
 			}
 		case 4:
-			sendCoords(getCoords())
+			sendGenCoords(getCoords())
 		}
 
 	}

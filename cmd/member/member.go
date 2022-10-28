@@ -61,6 +61,7 @@ func processMembers() {
 			if err != nil {
 				return
 			}
+			fmt.Println("El miembro ha sido añadido 🙌")
 
 		},
 	}
@@ -73,8 +74,6 @@ func processMembers() {
 		defer wg.Done()
 
 		for {
-
-			fmt.Println(1)
 
 			if err := cg.Consume(ctx, []string{"Membresias"}, &ch); err != nil {
 				log.Panic(err)
